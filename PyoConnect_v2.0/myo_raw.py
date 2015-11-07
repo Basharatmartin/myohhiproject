@@ -20,6 +20,10 @@ import time
 import serial
 from serial.tools.list_ports import comports
 
+#### adding pyqtgraph ...... 
+
+
+
 from common import *
 
 def multichr(ords):
