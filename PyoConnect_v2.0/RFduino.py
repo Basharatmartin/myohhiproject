@@ -24,6 +24,16 @@ class RFduino:
         ''' sending the emg data !!! '''
         if not self.mac:
             raise Exception("Maybe MAC is wrong ? .. Human_error :P")
+            
+
+        ### Manisha ,,, starts !!
+
+        string = str(msg)
+        msg = string.replace(',' ,' ').replace('(','').replace(')','')
+        
+        print msg
+
+        ##### Manisha,,, ends !!!
   
         msg_hex = "".join([hex(ord(c))[2:].zfill(2) for c in msg])
         cmd = "gatttool -b %s -t random --char-write --handle=0x0011 --value=%s" %  (self.mac, msg_hex)
