@@ -6,22 +6,40 @@
 		http://www.fernandocosentino.net/pyoconnect
 '''
 
-#!/usr/bin/python
+#!/usr/bin/python2.7
 
 from __future__ import print_function
 
+
 import enum
 import re
-import struct
 import sys
 import threading
 import time
-
+import os
 import serial
 from serial.tools.list_ports import comports
+from RFduino import RFduino
 
 #### adding pyqtgraph ...... 
+from pyqtgraph.Qt import QtGui, QtCore
+import numpy as np
+import pyqtgraph as pg
+#from pyqtgraph.ptime import time
+app = QtGui.QApplication([])
 
+
+'''Global variables !! '''
+RFduino_mac = "E6:78:14:46:C9:E9"
+RFduino_name = "RFduino"
+device = RFduino(RFduino_mac, RFduino_name)
+
+
+p = pg.plot()
+p.setWindowTitle('EMG Signals')
+p.setRange (QtCore.QRectF(0,-10,5000,200))   ##p.setRange(QtCore.QRectF(0, -10, 5000, 20)) 
+p.setLabel('bottom', 'Frequency', units='B')
+curve = p.plot()
 
 
 from common import *
@@ -73,7 +91,7 @@ class Packet(object):
 class BT(object):
     '''Implements the non-Myo-specific details of the Bluetooth protocol.'''
     def __init__(self, tty):
-        self.ser = serial.Serial(port=tty, baudrate=9600, dsrdtr=1)
+        self.ser = serial.Serial(port=tty, baudrate=115200, dsrdtr=1) #baudrate=9600
         self.buf = []
         self.lock = threading.Lock()
         self.handlers = []
@@ -186,6 +204,7 @@ class MyoRaw(object):
     def __init__(self, tty=None):
         if tty is None:
             tty = self.detect_tty()
+            print (tty)
         if tty is None:
             raise ValueError('Myo dongle not found!')
 
@@ -196,6 +215,7 @@ class MyoRaw(object):
         self.arm_handlers = []
         self.pose_handlers = []
 
+    
     def detect_tty(self):
         for p in comports():
             if re.search(r'PID=2458:0*1', p[2]):
@@ -203,7 +223,7 @@ class MyoRaw(object):
                 return p[0]
 
         return None
-
+        
     def run(self, timeout=None):
         self.bt.recv_packet(timeout)
 
@@ -292,6 +312,7 @@ class MyoRaw(object):
                 ## seems to indicate which sensors think they're being moved around or
                 ## something
                 emg = vals[:8]
+                data_graph = emg
                 moving = vals[8]
                 self.on_emg(emg, moving)
             elif attr == 0x1c:
@@ -409,9 +430,28 @@ class MyoRaw(object):
     def on_arm(self, arm, xdir):
         for h in self.arm_handlers:
             h(arm, xdir)
+            
+    def update():
+        global curve, data_graph, ptr, p, lastTime, fps
+        curve.setData(data_graph[ptr%10])
+        ptr += 1
+        now = time()
+        dt = now - lastTime
+        lastTime = now
+        if fps is None:
+            fps = 1.0/dt
+        else:
+            s = np.clip(dt*3., 0, 1)
+        fps = fps * (1-s) + (1.0/dt) * s
+        p.setTitle('%0.2f fps' % fps)
+        app.processEvents()  ## force complete redraw for every plot
+        timer = QtCore.QTimer()
+        timer.timeout.connect(update)
+        timer.start(0)
 
 
 if __name__ == '__main__':
+
     try:
         import pygame
         from pygame.locals import *
@@ -449,28 +489,70 @@ if __name__ == '__main__':
 
         pygame.display.flip()
         last_vals = vals
+        
 
     m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None)
 
+
+    ### added by Basharat !!!!
+
+    file_write = open ("myo_newRAW.txt", "wb")
+    if file_write:
+        print ("file is created !!")
+    else:
+        print ("file is not created !!")
+
+    print ("Myo is connected, now waiting for the output terminal connection...")
+
+    
+    ###for bluetooth services !!!
+    '''    
+    for services in bluetooth.find_service(address = bdaddr):
+        print (" Name: %s" % (services["name"]) )
+        print (" Description: %s" % (services["description"]) )
+        print (" Protocol: %s" % (services["protocol"]) )
+        print (" Provider: %s" % (services["provider"]) )
+        print (" Port: %s" % (services["port"]) )
+        print (" Service id: %s" % (services["service-id"]) )
+        print ("")
+    
+    '''  
+    if(device.find()):
+        print ("RFduino found")
+    else:
+        print ("RFduino not found.")
+        sys.exit(-1)
+                        
+    #### end Basharat
+
+
     def proc_emg(emg, moving, times=[]):
+        
         if HAVE_PYGAME:
             ## update pygame display
             plot(scr, [e / 2000. for e in emg])
         else:
             print(emg)
+            file_write.write(str(emg) + '\n')
+            device.send(str(emg))
+            #print("Hello MArtin")            
+            #if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+            #    QtGui.QApplication.instance().exec_()
 
         ## print framerate of received data
         times.append(time.time())
         if len(times) > 20:
             #print((len(times) - 1) / (times[-1] - times[0]))
             times.pop(0)
-
+    
+    
     m.add_emg_handler(proc_emg)
     m.connect()
-
+    
     m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     m.add_pose_handler(lambda p: print('pose', p))
 
+    
     try:
         while True:
             m.run(1)
