@@ -1,14 +1,26 @@
 #include <RFduinoBLE.h>
-#define RED_LED_PIN   2
-#define GREEN_LED_PIN 3
-#define BLUE_LED_PIN  4
+#define Led1  3
+#define Led2  4
+#define Led3  5
+#define Led3  6
+#define highEMG 300
+#define lowEMG 100
+
+int LEDs[] = {3,4,5,6};
+int SwitchThresholdState = 0;
+int SwitchState = 0;
+int MAX;
+int SwitchStatePin = 0;
+int SwitchThresholdPin = 1;
 
 void setup()
 {
   // Set pins as outputs.
-  pinMode(RED_LED_PIN, OUTPUT);
-  pinMode(GREEN_LED_PIN, OUTPUT);
-  pinMode(BLUE_LED_PIN, OUTPUT);
+  for(int i=0; i<4; i++){
+    pinMode(LEDs[i], OUTPUT);
+  }
+  pinMode(SwitchStatePin,INPUT);
+  pinMode(SwitchThresholdPin,INPUT);
 
   // Enable serial debug, type cntrl-M at runtime.
   override_uart_limit = true;
@@ -17,23 +29,19 @@ void setup()
   Serial.println("Serial rate set to 9600 baud");
 
   // All LEDs are initially turned off
-  digitalWrite(RED_LED_PIN, LOW);
-  digitalWrite(GREEN_LED_PIN, LOW);
-  digitalWrite(BLUE_LED_PIN, LOW);
+  for(int i=0; i<4; i++){
+    digitalWrite(LEDs[i], LOW);
+  }
 
-  // Indicate RGB LED is operational to user.
-  digitalWrite(RED_LED_PIN, HIGH);    // red
-  delay (500);
-  digitalWrite(GREEN_LED_PIN, HIGH);  // green
-  delay (500);  
-  digitalWrite(BLUE_LED_PIN, HIGH);   // blue
-  delay (500);
-  digitalWrite(RED_LED_PIN, LOW);     // lights out
-  delay (300);
-  digitalWrite(GREEN_LED_PIN, LOW);
-  delay (300);
-  digitalWrite(BLUE_LED_PIN, LOW);
-  delay (300);
+  // Indicate that LEDs are operational to user.
+  for(int i=0; i<4; i++){
+    digitalWrite(LEDs[i], HIGH);
+    delay (500);
+  }
+  for(int i=0; i<4; i++){
+    digitalWrite(LEDs[i], LOW);
+    delay (500);
+  }
 
 
   //Configuration for RFduino  
@@ -48,6 +56,8 @@ void setup()
   // start the BLE stack
   RFduinoBLE.begin();
   Serial.println("RFduino BLE stack started");
+
+  MAX = highEMG;
 }
 
 void loop()
@@ -57,15 +67,14 @@ void loop()
 
   // to send one char
   // RFduinoBLE.send((char)temp);
-  //RFduinoBLE.send(1);
  
   // to send multiple chars
   // RFduinBLE.send(&data, len);
+} 
 
-}
 
 void RFduinoBLE_onAdvertisement(bool start)
-{
+{ 
   Serial.println("RFduino is doing BLE advertising ...");
 }
 
@@ -77,9 +86,10 @@ void RFduinoBLE_onConnect()
 void RFduinoBLE_onDisconnect()
 {
   Serial.println("RFduino BLE disconnected");
-  digitalWrite(RED_LED_PIN, LOW);
-  digitalWrite(GREEN_LED_PIN, LOW);
-  digitalWrite(BLUE_LED_PIN, LOW);
+ for(int i=0; i<4; i++){
+    digitalWrite(LEDs[i], LOW);
+    delay (500);
+  }
 }
 
 // returns the dBm signal strength indicated by the receiver after connection (-0dBm to -127dBm)
@@ -87,42 +97,60 @@ void RFduinoBLE_onRSSI(int rssi)
 {
 }
 void RFduinoBLE_onReceive(char *data, int len)
-{
-  // If the first byte is 0x01 / on / true
+{ 
   Serial.println("Received data over BLE");
-  /*for (;;){
-    
-    if (data){
-      Serial.println(data++); 
-    }
-    else{ 
-      break;
-    }
-  }*/
+/*
+SwitchThresholdState = digitalRead(SwitchThresholdPin);
+  Serial.print("SwitchThresholdState: "); Serial.println(SwitchThresholdState);
+  if (SwitchThresholdState == HIGH) {
+    if(MAX == highEMG){ 
+      Serial.print("High EMG: "); Serial.println(MAX); 
+      MAX = lowEMG;         
+    } 
+    else{
+      Serial.print("LOW EMG: "); Serial.println(MAX);
+      MAX = highEMG;          
+    } 
+  }
+  while (SwitchThresholdState == HIGH) { // This will pause the program while the person is touching the threshold button, 
+    SwitchThresholdState = digitalRead(SwitchThresholdPin);         
+    delay(1000); 
+  }// so it doesn't flip back and forth while button is pushed
+   
 
-  
-  for (int i=0; i<len; i++){
-    Serial.println(data); 
-  }
-  
-  //if (data[0])
-  if (data[0])
-  {
-    digitalWrite(BLUE_LED_PIN, HIGH);
-    Serial.println("Turn RFduino Blue LED On");
-  }
-  else
-  {
-    digitalWrite(BLUE_LED_PIN, LOW);
-    Serial.println("Turn RFduino Blue LED Off");
-  }
+  SwitchState = digitalRead(SwitchStatePin);
+  Serial.print("SwitchState: "); Serial.println(SwitchState);
+  while (SwitchState == HIGH) { // This will pause the program while the person is touching TENS test button
+      SwitchState = digitalRead(SwitchStatePin);  
+      Serial.println("...wait, setting up TENS...");
+      delay(1000); 
+  } 
+*/
 
-  uint8_t r = data[0];
-  uint8_t g = data[1];
-  analogWrite(RED_LED_PIN, r);
-  analogWrite(GREEN_LED_PIN, g);
-  Serial.print("First byte");
-  Serial.print("\t");
-  Serial.println(r);
+
+  //uint8_t *arr = (uint8_t *)data;
+  //for (int i=0; i<len; i++){
+    //Serial.println(arr[i]); 
+  //}
+  
+
+  int a,b,c,d,e,f,g,h; 
+  a = data[0]; Serial.print(a); Serial.print("\t");
+  b = data[1]; Serial.print(b); Serial.print("\t");
+  c = data[2]; Serial.print(c); Serial.print("\t");
+  d = data[3]; Serial.print(d); Serial.print("\t");
+  e = data[4]; Serial.print(e); Serial.print("\t");
+  f = data[5]; Serial.print(f); Serial.print("\t");
+  g = data[6]; Serial.print(g); Serial.print("\t");
+  h = data[7]; Serial.println(h); 
+  analogWrite(3,a);
+  analogWrite(4,b);
+  analogWrite(5,c);
+  analogWrite(6,d);
+
+  Serial.flush();
 }
+ 
+  
+
 
