@@ -22,25 +22,26 @@ from serial.tools.list_ports import comports
 from RFduino import RFduino
 
 #### adding pyqtgraph ...... 
+'''
 from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import pyqtgraph as pg
 #from pyqtgraph.ptime import time
 app = QtGui.QApplication([])
-
+'''
 
 '''Global variables !! '''
 RFduino_mac = "E6:78:14:46:C9:E9"
 RFduino_name = "RFduino"
 device = RFduino(RFduino_mac, RFduino_name)
 
-
+'''
 p = pg.plot()
 p.setWindowTitle('EMG Signals')
 p.setRange (QtCore.QRectF(0,-10,5000,200))   ##p.setRange(QtCore.QRectF(0, -10, 5000, 20)) 
 p.setLabel('bottom', 'Frequency', units='B')
 curve = p.plot()
-
+'''
 
 from common import *
 
