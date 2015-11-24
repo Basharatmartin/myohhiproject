@@ -10,7 +10,7 @@
 
 from __future__ import print_function
 
-
+import ctypes
 import enum
 import re
 import sys
@@ -20,6 +20,7 @@ import os
 import serial
 from serial.tools.list_ports import comports
 from RFduino import RFduino
+#from pyqtgraph.ptime import time
 
 #### adding pyqtgraph ...... 
 '''
@@ -32,9 +33,11 @@ app = QtGui.QApplication([])
 
 '''Global variables !! '''
 RFduino_mac = "E6:78:14:46:C9:E9"
+#RFduino_mac = "CD:8E:A6:74:F9:E5"
 RFduino_name = "RFduino"
 device = RFduino(RFduino_mac, RFduino_name)
 
+<<<<<<< HEAD
 '''
 p = pg.plot()
 p.setWindowTitle('EMG Signals')
@@ -42,6 +45,9 @@ p.setRange (QtCore.QRectF(0,-10,5000,200))   ##p.setRange(QtCore.QRectF(0, -10, 
 p.setLabel('bottom', 'Frequency', units='B')
 curve = p.plot()
 '''
+=======
+
+>>>>>>> e5d17e2c01799c6977d15da906fab2cf961d331c
 
 from common import *
 
@@ -198,6 +204,46 @@ class BT(object):
             ## not a response: must be an event
             self.handle_event(p)
 
+'''
+p = pg.plot()  
+p.setLabel('top', units='EMG Signals')
+p.setLabel('bottom', 'time', units='sec')
+
+nPlots = 8
+nSamples = 500
+curves = []
+for i in range(nPlots):
+    c = pg.PlotCurveItem(pen=(i,nPlots*1.2))
+    p.addItem(c)
+    c.setPos(0,i*6)
+    curves.append(c)
+
+p.setYRange(0, nPlots*6)
+p.resize(2000,900)
+string = []
+ptr = 0
+#lastTime = time()
+fps = None
+count = 0
+    
+class graph(object):
+    def __init__(self):
+        self
+        
+    def update():
+        global curve, ptr, fps, nPlots, count, string
+        count += 1
+        #print ("---------", string)
+        for i in range(nPlots):
+            curves[i].setData(string[(ptr+i)%string])
+        
+        ptr += nPlots
+
+
+    timer = QtCore.QTimer()
+    timer.timeout.connect(update)
+    timer.start(0)
+'''
 
 class MyoRaw(object):
     '''Implements the Myo-specific communication protocol.'''
@@ -313,7 +359,7 @@ class MyoRaw(object):
                 ## seems to indicate which sensors think they're being moved around or
                 ## something
                 emg = vals[:8]
-                data_graph = emg
+                #data_graph = emg
                 moving = vals[8]
                 self.on_emg(emg, moving)
             elif attr == 0x1c:
@@ -432,23 +478,6 @@ class MyoRaw(object):
         for h in self.arm_handlers:
             h(arm, xdir)
             
-    def update():
-        global curve, data_graph, ptr, p, lastTime, fps
-        curve.setData(data_graph[ptr%10])
-        ptr += 1
-        now = time()
-        dt = now - lastTime
-        lastTime = now
-        if fps is None:
-            fps = 1.0/dt
-        else:
-            s = np.clip(dt*3., 0, 1)
-        fps = fps * (1-s) + (1.0/dt) * s
-        p.setTitle('%0.2f fps' % fps)
-        app.processEvents()  ## force complete redraw for every plot
-        timer = QtCore.QTimer()
-        timer.timeout.connect(update)
-        timer.start(0)
 
 
 if __name__ == '__main__':
@@ -463,7 +492,7 @@ if __name__ == '__main__':
     if HAVE_PYGAME:
         w, h = 1200, 400
         scr = pygame.display.set_mode((w, h))
-
+       
     last_vals = None
     def plot(scr, vals):
         DRAW_LINES = False
@@ -497,7 +526,7 @@ if __name__ == '__main__':
 
     ### added by Basharat !!!!
 
-    file_write = open ("myo_newRAW.txt", "wb")
+    file_write = open ("myo_newfile.txt", "w")
     if file_write:
         print ("file is created !!")
     else:
@@ -505,6 +534,9 @@ if __name__ == '__main__':
 
     print ("Myo is connected, now waiting for the output terminal connection...")
 
+    
+    
+#    graph.plotemg()
     
     ###for bluetooth services !!!
     '''    
@@ -516,8 +548,8 @@ if __name__ == '__main__':
         print (" Port: %s" % (services["port"]) )
         print (" Service id: %s" % (services["service-id"]) )
         print ("")
-    
-    '''  
+    '''
+      
     if(device.find()):
         print ("RFduino found")
     else:
@@ -525,6 +557,9 @@ if __name__ == '__main__':
         sys.exit(-1)
                         
     #### end Basharat
+    
+    
+
 
 
     def proc_emg(emg, moving, times=[]):
@@ -533,9 +568,16 @@ if __name__ == '__main__':
             ## update pygame display
             plot(scr, [e / 2000. for e in emg])
         else:
-            print(emg)
-            file_write.write(str(emg) + '\n')
-            device.send(str(emg))
+            #time.sleep(0)
+            #print (emg)
+            #emg = (emg0 | emg1 | emg2 | emg3)
+            #emg = hex(emg)        
+        
+            #file_write.write(str(emg) + '\n')
+            #graph.update(emg)
+            device.send(emg)
+            #print (emg)
+
             #print("Hello MArtin")            
             #if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
             #    QtGui.QApplication.instance().exec_()
@@ -553,7 +595,10 @@ if __name__ == '__main__':
     m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     m.add_pose_handler(lambda p: print('pose', p))
 
-    
+    '''
+    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        QtGui.QApplication.instance().exec_()
+    ''' 
     try:
         while True:
             m.run(1)
