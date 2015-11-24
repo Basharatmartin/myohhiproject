@@ -543,7 +543,7 @@ if __name__ == '__main__':
         print ("RFduino found")
     else:
         print ("RFduino not found.")
-        #sys.exit(-1)
+        sys.exit(-1)
                         
     #### end Basharat
     
