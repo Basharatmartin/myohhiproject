@@ -31,8 +31,8 @@ app = QtGui.QApplication([])
 
 
 '''Global variables !! '''
-RFduino_mac = "E6:78:14:46:C9:E9"
-#RFduino_mac = "CD:8E:A6:74:F9:E5"
+#RFduino_mac = "E6:78:14:46:C9:E9"
+RFduino_mac = "CD:8E:A6:74:F9:E5"
 RFduino_name = "RFduino"
 device = RFduino(RFduino_mac, RFduino_name)
 
