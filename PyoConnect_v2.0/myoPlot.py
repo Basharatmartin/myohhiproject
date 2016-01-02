@@ -14,9 +14,10 @@ class Plot:
     def __init__ (self, hello):
         self.hello = hello
     
-    def plotemg (self):
-        file_open = open('myo_newfile.txt', 'r').read()
-        get_data = file_open.replace('(','').replace(')','')
+    def plotemg (self, emg):
+        #file_open = open('myo_newfile.txt', 'r').read()
+        
+        #get_data = file_open.replace('(','').replace(')','')
         data_array = get_data.split('\n')
         a_array = []
         b_array = []
