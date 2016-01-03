@@ -21,21 +21,6 @@ import serial
 from serial.tools.list_ports import comports
 from RFduino import RFduino
 
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-
-
-
-#from pyqtgraph.ptime import time
-
-#### adding pyqtgraph ...... 
-'''
-from pyqtgraph.Qt import QtGui, QtCore
-import numpy as np
-import pyqtgraph as pg
-#from pyqtgraph.ptime import time
-app = QtGui.QApplication([])
-'''
 
 '''Global variables !! '''
 RFduino_mac = "E6:78:14:46:C9:E9"
@@ -43,13 +28,6 @@ RFduino_mac = "E6:78:14:46:C9:E9"
 RFduino_name = "RFduino"
 device = RFduino(RFduino_mac, RFduino_name)
 
-'''
-p = pg.plot()
-p.setWindowTitle('EMG Signals')
-p.setRange (QtCore.QRectF(0,-10,5000,200))   ##p.setRange(QtCore.QRectF(0, -10, 5000, 20)) 
-p.setLabel('bottom', 'Frequency', units='B')
-curve = p.plot()
-'''
 
 from common import *
 
@@ -206,46 +184,6 @@ class BT(object):
             ## not a response: must be an event
             self.handle_event(p)
 
-'''
-p = pg.plot()  
-p.setLabel('top', units='EMG Signals')
-p.setLabel('bottom', 'time', units='sec')
-
-nPlots = 8
-nSamples = 500
-curves = []
-for i in range(nPlots):
-    c = pg.PlotCurveItem(pen=(i,nPlots*1.2))
-    p.addItem(c)
-    c.setPos(0,i*6)
-    curves.append(c)
-
-p.setYRange(0, nPlots*6)
-p.resize(2000,900)
-string = []
-ptr = 0
-#lastTime = time()
-fps = None
-count = 0
-    
-class graph(object):
-    def __init__(self):
-        self
-        
-    def update():
-        global curve, ptr, fps, nPlots, count, string
-        count += 1
-        #print ("---------", string)
-        for i in range(nPlots):
-            curves[i].setData(string[(ptr+i)%string])
-        
-        ptr += nPlots
-
-
-    timer = QtCore.QTimer()
-    timer.timeout.connect(update)
-    timer.start(0)
-'''
 
 class MyoRaw(object):
     '''Implements the Myo-specific communication protocol.'''
@@ -480,9 +418,6 @@ class MyoRaw(object):
         for h in self.arm_handlers:
             h(arm, xdir)
 
-Figure = plt.figure()
-axis = Figure.add_subplot (1,1,1)
-
 
 if __name__ == '__main__':
 
@@ -494,24 +429,26 @@ if __name__ == '__main__':
         HAVE_PYGAME = False
 
     if HAVE_PYGAME:
-        w, h = 1200, 400
+        w, h = 1200, 800  #1200,400
+        pygame.display.set_caption('EMG Signals')
         scr = pygame.display.set_mode((w, h))
        
     last_vals = None
     def plot(scr, vals):
-        DRAW_LINES = False
+        DRAW_LINES = True
+        pygame.display.set_caption('EMG Signals')
 
         global last_vals
         if last_vals is None:
             last_vals = vals
             return
 
-        D = 5
+        D = 15
         scr.scroll(-D)
         scr.fill((0,0,0), (w - D, 0, w, h))
         for i, (u, v) in enumerate(zip(last_vals, vals)):
             if DRAW_LINES:
-                pygame.draw.line(scr, (0,255,0),
+                pygame.draw.line(scr, (56,255,89),
                                  (w - D, int(h/8 * (i+1 - u))),
                                  (w, int(h/8 * (i+1 - v))))
                 pygame.draw.line(scr, (255,255,255),
@@ -554,80 +491,57 @@ if __name__ == '__main__':
         print ("RFduino found")
     else:
         print ("RFduino not found.")
-        #sys.exit(-1)
+        sys.exit(-1)
                         
     #### end Basharat
     
     
-    def proc_imu (quat,acc,gyro):
-        print (gyro)
-
-    def animate (emg):
-        xs = []
-        ys = []
-        
-        xs.append(emg[0])
-        ys.append(emg[1])
-        axis.clear()
-        axis.plot(xs)
-        #print (emg)
-
-    animation.FuncAnimation(Figure, animate , interval=1000)
-    plt.plot()
+    #def proc_imu (quat,acc,gyro):
+    #    print (gyro)
 
 
     def proc_emg(emg, moving, times=[]):
-        #print (emg)
-        #ani.FuncAnimation(Figure, plotemg, interval=1000)
-        #plt.show()
-        animate(emg)
-                
-        
-            #device.send(emg)
-        #file_write.write(str(emg) + '\n')
 
-        '''
         if HAVE_PYGAME:
             ## update pygame display
             plot(scr, [e / 2000. for e in emg])
         else:
-            #time.sleep(0.050)
+            time.sleep(0)
             #print (emg)
             #emg = (emg0 | emg1 | emg2 | emg3)
             #emg = hex(emg)        
         
             #file_write.write(str(emg) + '\n')
             #graph.update(emg)
-            device.send(emg)
+            #device.send(emg)
             #print (emg)
 
             #print("Hello MArtin")            
             #if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
             #    QtGui.QApplication.instance().exec_()
+        
+        
+        #file_write.write(str(emg) + '\n')
 
+
+        device.send(emg)        
         ## print framerate of received data
         times.append(time.time())
         if len(times) > 20:
             #print((len(times) - 1) / (times[-1] - times[0]))
             times.pop(0)
-        '''
+        
   
 
       
     m.add_emg_handler(proc_emg)
-    
     #m.add_imu_handler(proc_imu)    
     m.connect()
                                
     m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     m.add_pose_handler(lambda p: print('pose', p))
     
-    #plt.show()
-
-    '''
-    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
-    ''' 
+     
     try:
         while True:
             m.run(1)

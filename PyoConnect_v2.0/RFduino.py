@@ -67,6 +67,7 @@ class RFduino:
         Mask = (msg1 << 56) | (msg2 << 48) | (msg3 << 40) | (msg4 << 32) | (msg5 << 24) | (msg6 << 16) | (msg7 << 8) |  msg8
         print msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8, '0x%08x' % Mask
     
+        #print '0x%08x' % Mask
         
         '''        
         if ( (msg1 > 255) and (msg2 > 255) and (msg3 > 255) and (msg4 > 255)):
