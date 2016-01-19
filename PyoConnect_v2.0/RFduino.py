@@ -44,6 +44,7 @@ class RFduino:
         msg5 = msg[4] / 4
         msg6 = msg[5] / 4
         msg7 = msg[6] / 4
+        msg8 = msg[7] / 4
         
         if (msg1 > 255):
             msg1 = 255
@@ -59,11 +60,14 @@ class RFduino:
             msg6 = 255
         if (msg7 > 255):
             msg7 = 255            
+        if (msg8 > 255):
+            msg8 = 255
 
-
-        Mask = (msg1 << 24) | (msg2 << 16) | (msg3 << 8) | msg4
-        print msg1, msg2, msg3, msg4, '0x%08x' % Mask
+        #Mask = (msg2 << 24) | (msg4 << 16) | (msg6 << 8) | msg7
+        Mask = (msg1 << 56) | (msg2 << 48) | (msg3 << 40) | (msg4 << 32) | (msg5 << 24) | (msg6 << 16) | (msg7 << 8) |  msg8
+        print msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8, '0x%08x' % Mask
     
+        #print '0x%08x' % Mask
         
         '''        
         if ( (msg1 > 255) and (msg2 > 255) and (msg3 > 255) and (msg4 > 255)):
@@ -79,21 +83,6 @@ class RFduino:
             #Mask = (Mask)        
             print msg1, msg2, msg3, msg4, Mask
         '''
-        #Mask = 'ff'
-        #print msg1, msg2, msg3, msg4, Mask
-        #print msg/2
-        #msg = (0xff00 | msg)
-        
-        #msg = 0x0000 & msg
-        
-        
-        #msg = 0x000f | msg
-        
-        #array = ['0x1d', '0x2a', '0x45','0x23']
-        
-        #msg1 = array
-    
-        #print msg  
         
         ''' finished '''
         #print msg
