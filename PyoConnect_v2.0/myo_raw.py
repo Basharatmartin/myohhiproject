@@ -23,8 +23,8 @@ from RFduino import RFduino
 
 
 '''Global variables !! '''
-RFduino_mac = "E6:78:14:46:C9:E9"
-#RFduino_mac = "CD:8E:A6:74:F9:E5"
+#RFduino_mac = "E6:78:14:46:C9:E9"
+RFduino_mac = "CD:8E:A6:74:F9:E5"
 RFduino_name = "RFduino"
 device = RFduino(RFduino_mac, RFduino_name)
 
@@ -56,8 +56,10 @@ class XDirection(enum.Enum):
 class Pose(enum.Enum):
     REST = 0
     FIST = 1
-    WAVE_IN = 2
-    WAVE_OUT = 3
+    #WAVE_IN = 2
+    #WAVE_OUT = 3
+    RIGHT = 2
+    LEFT = 3    
     FINGERS_SPREAD = 4
     THUMB_TO_PINKY = 5
     UNKNOWN = 255	 
@@ -424,7 +426,7 @@ if __name__ == '__main__':
     try:
         import pygame
         from pygame.locals import *
-        HAVE_PYGAME = True
+        HAVE_PYGAME = False
     except ImportError:
         HAVE_PYGAME = False
 
@@ -492,20 +494,44 @@ if __name__ == '__main__':
     else:
         print ("RFduino not found.")
         sys.exit(-1)
-                        
-    #### end Basharat
     
-    
-    #def proc_imu (quat,acc,gyro):
-    #    print (gyro)
 
+    RFduinoData = [0,0,0,0,0,0]
+    
+    def datamix (gyrodata, emgdata):
+        global RFduinoData
+        
+        if gyrodata:
+            RFduinoData [0] = gyrodata[1]           
+            #print ()
+        if emgdata:
+            #print (emgdata)
+            RFduinoData [1] = emgdata[0]
+            RFduinoData [2] = emgdata[1]
+            RFduinoData [3] = emgdata[4]
+            RFduinoData [4] = emgdata[5]
+            RFduinoData [5] = emgdata[6]
+            
+        if RFduinoData[0] and RFduinoData[5]:
+            #print (RFduinoData)
+            device.send(RFduinoData) 
+            #plot (scr, [e / 2000. for e in RFduinoData])
+    
+
+    def proc_imu (quat,acc,gyro):
+        #print (gyro, acc, quat)
+        #plot (scr, [e/2000. for e in gyro])     
+        datamix(gyro, None)
+        #time.sleep(0)
 
     def proc_emg(emg, moving, times=[]):
-
+    
         if HAVE_PYGAME:
             ## update pygame display
-            plot(scr, [e / 2000. for e in emg])
+            #plot(scr, [e / 2000. for e in emg])
+            time.sleep(0)
         else:
+        
             time.sleep(0)
             #print (emg)
             #emg = (emg0 | emg1 | emg2 | emg3)
@@ -523,24 +549,22 @@ if __name__ == '__main__':
         
         #file_write.write(str(emg) + '\n')
 
-
-        device.send(emg)        
-        ## print framerate of received data
+        datamix (None, emg)
+        #device.send(emg)        
+        #print (emg)
         times.append(time.time())
         if len(times) > 20:
             #print((len(times) - 1) / (times[-1] - times[0]))
             times.pop(0)
         
   
-
-      
+    
     m.add_emg_handler(proc_emg)
-    #m.add_imu_handler(proc_imu)    
+    m.add_imu_handler(proc_imu)    
     m.connect()
                                
     m.add_arm_handler(lambda arm, xdir: print('arm', arm, 'xdir', xdir))
     m.add_pose_handler(lambda p: print('pose', p))
-    
      
     try:
         while True:
