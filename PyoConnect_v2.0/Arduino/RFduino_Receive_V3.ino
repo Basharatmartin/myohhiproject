@@ -35,7 +35,7 @@ byte valFingers = 0;                       //
 byte valArm = 0;                           //
 byte valLeft = 0;                          //
 byte multiplier = 1;                       //EMG multiplier
-byte tensPin[] = {2, 3, 4, 5, 6};          //
+byte tensPin[] = {2, 3, 4, 5, 6};          //output pins
 uint8_t waitForFingers  = 0;               //
 uint8_t waitForArm = 0;                    //
 uint8_t waitForLeft = 0;                   //
@@ -100,7 +100,7 @@ void setup()
 }
 
 //*********************************************************************************
-//
+//main 
 //*********************************************************************************
 void loop()
 {
@@ -206,6 +206,7 @@ void RFduinoBLE_onReceive(char *data, int len)
 
 
   // ********************Computation for Arm Actuation***********************
+  // ************************************************************************
   if((myo3_sen >= compareValue) && (myo4_sen >= compareValue) && (myo5_sen >= compareValue) && (myo6_sen >= compareValue)){
     myo1_sen = myo2_sen = myo7_sen = myo8_sen = 1;
     
@@ -237,6 +238,7 @@ void RFduinoBLE_onReceive(char *data, int len)
 
 
   // ********************Computation for Left Actuation********************
+  // **********************************************************************
   if((myo1_sen >= compareValue) && (myo2_sen >= compareValue)){
      myo3_sen = myo4_sen = myo5_sen = myo6_sen =myo7_sen = myo8_sen = 1;
     
@@ -264,6 +266,7 @@ void RFduinoBLE_onReceive(char *data, int len)
 
 
    // *****************Computation for Fingers Actuation*********************
+   // ***********************************************************************
   if((myo5_sen >= compareValue) && (myo6_sen >= compareValue) && (myo7_sen >= compareValue)){
      myo1_sen = myo2_sen = myo3_sen = myo4_sen =myo8_sen = 1;
     
@@ -282,7 +285,7 @@ void RFduinoBLE_onReceive(char *data, int len)
       avgFingers_sensorVal[2] +=  accFingers3[i];
     }
     
-    AverageFingers      = (avgFingers_sensorVal[0] + avgFingers_sensorVal[1] + avgFingers_sensorVal[2])/20;
+    AverageFingers      = (avgFingers_sensorVal[0] + avgFingers_sensorVal[1] + avgFingers_sensorVal[2])/25;
 
     finalReadingFingers = constrain(AverageFingers, 0, MAX);                // constrain Average value to MAX
     valFingers          = map(finalReadingFingers,  0, MAX,0, MAX_LED);     // Map final reading to MAX_LED
@@ -347,13 +350,13 @@ void RFduinoBLE_onReceive(char *data, int len)
   // ACTUATION
   //**********************************************************************
   switch(actuate){
-      case 0:  
+      case 0:  //No actuation
         digitalWrite(tensPin[2], LOW); 
         digitalWrite(tensPin[3], LOW);
         digitalWrite(tensPin[4], LOW);    
       break;
 
-      case 1:
+      case 1:   //Finger actuation
         if(valFingers >= ThresholdVAL){
           digitalWrite(tensPin[2], HIGH);
           digitalWrite(tensPin[3], LOW);
@@ -363,7 +366,7 @@ void RFduinoBLE_onReceive(char *data, int len)
         } 
       break;
 
-      case 2:
+      case 2:   //Left actuation
         if( valLeft>= ThresholdVAL){  
           digitalWrite(tensPin[3], HIGH);
           digitalWrite(tensPin[2], LOW);
@@ -373,7 +376,7 @@ void RFduinoBLE_onReceive(char *data, int len)
         }
       break;
 
-      case 3:
+      case 3:   //Arm actuation
         if(valArm >= ThresholdVAL){                    
           digitalWrite(tensPin[4], HIGH);
           digitalWrite(tensPin[2], LOW);
@@ -383,7 +386,7 @@ void RFduinoBLE_onReceive(char *data, int len)
         }
       break;
 
-      default:
+      default:  //No actuation
         digitalWrite(tensPin[2], LOW);
         digitalWrite(tensPin[3], LOW);
         digitalWrite(tensPin[4], LOW);
