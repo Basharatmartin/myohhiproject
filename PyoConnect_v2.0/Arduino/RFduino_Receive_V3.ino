@@ -7,7 +7,7 @@
 
 \n Copyright (c) wearable lab
 \n Date: 30.01.2016
-\n Author: Boniface Bassey
+\n Boniface Bassey
 *********************************************************************************/
 
 #include <RFduinoBLE.h>

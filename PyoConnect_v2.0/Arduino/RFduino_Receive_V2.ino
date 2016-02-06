@@ -1,3 +1,15 @@
+/*********************************************************************************
+\file:  RFduino_Recieve_V2.ino
+
+\DESCRIPTION:
+          -This file is part of our wearable lab project
+          -Realizes only one movement of the hand
+
+\n Copyright (c) wearable lab
+\n Date: 09.01.2016
+\n Boniface Bassey
+*********************************************************************************/
+
 #include <RFduinoBLE.h>
 
 //*********************************************************************************
